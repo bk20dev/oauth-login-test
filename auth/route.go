@@ -10,11 +10,13 @@ import (
 
 type Route struct {
 	clientId string
+	repo     Repo
 }
 
-func NewRoute(clientId string) *Route {
+func NewRoute(clientId string, repo Repo) *Route {
 	return &Route{
 		clientId: clientId,
+		repo:     repo,
 	}
 }
 
