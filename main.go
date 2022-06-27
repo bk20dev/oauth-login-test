@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/go-chi/chi"
+	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
@@ -17,8 +18,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	sessionSecret := os.Getenv("SESSION_SECRET")
+	sessionStore := sessions.NewCookieStore([]byte(sessionSecret))
+
 	router := chi.NewRouter()
-	setupRoutes(router, db)
+	setupRoutes(router, db, sessionStore)
 
 	server := http.Server{
 		Addr:    ":4000",
@@ -41,9 +45,9 @@ func openDB(driver, dataSource string) (*sql.DB, error) {
 	return db, nil
 }
 
-func setupRoutes(router *chi.Mux, db *sql.DB) {
+func setupRoutes(router *chi.Mux, db *sql.DB, sessionStore sessions.Store) {
 	clientId := os.Getenv("GOOGLE_CLIENT_ID")
 	repo := auth.NewPostgresRepo(db)
-	authRoute := auth.NewRoute(clientId, repo)
+	authRoute := auth.NewRoute(clientId, repo, sessionStore)
 	authRoute.Register(router)
 }

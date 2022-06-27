@@ -20,6 +20,7 @@ type Repo interface {
 	GetOAuthEntry(provider Provider, subject string) (*OAuthEntry, error)
 	CreateOAuthEntry(provider Provider, subject, userId string) error
 	CreateUser(user *User) (string, error)
+	GetUser(id string) (*User, error)
 }
 
 type PostgresRepo struct {
@@ -62,4 +63,16 @@ func (pr *PostgresRepo) CreateUser(user *User) (string, error) {
 		return "", err
 	}
 	return id, nil
+}
+
+func (pr *PostgresRepo) GetUser(id string) (*User, error) {
+	row := pr.db.QueryRow("SELECT user_id, name FROM \"user\" WHERE user_id=$1", id)
+	if row == nil {
+		return nil, sql.ErrNoRows
+	}
+	user := User{}
+	if err := row.Scan(&user.Id, &user.Name); err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
